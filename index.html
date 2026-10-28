@@ -46,7 +46,7 @@
 
         #panel-pista {
             position: fixed;
-            bottom: 15px;
+            bottom: 64px;
             left: 50%;
             transform: translateX(-50%);
             width: 88%;
@@ -102,6 +102,15 @@
             line-height: 1.5;
             max-width: 480px;
             margin: 8px 0;
+        }
+
+        #pista-inicio-texto {
+            border: 2px solid #c9a227;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 16px !important;
+            background: rgba(201, 162, 39, 0.12);
+            color: #ffd75e;
         }
 
         #pantalla-final {
@@ -171,14 +180,26 @@
             cursor: default;
         }
 
-        #boton-reiniciar {
+        #barra-botones {
             position: fixed;
-            bottom: 15px;
-            right: 15px;
-            z-index: 100;
+            bottom: 12px;
+            left: 0;
+            right: 0;
+            z-index: 110;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding: 0 14px;
+            box-sizing: border-box;
+        }
+
+        #barra-botones .boton {
             margin: 0;
-            padding: 9px 16px;
-            font-size: 13px;
+            padding: 11px 18px;
+            font-size: 14px;
+        }
+
+        #boton-reiniciar {
             background-color: rgba(120, 40, 40, 0.85);
             color: #f5e6c8;
         }
@@ -296,6 +317,7 @@
             Apuntá la cámara a cada uno para descubrir su pista.
             Cuando tengas las tres, el cofre se abrirá.
         </p>
+        <p id="pista-inicio-texto"></p>
         <button id="boton-comenzar" class="boton" onclick="comenzarJuego()" disabled>
             Cargando marcadores...
         </button>
@@ -313,11 +335,14 @@
     <div id="panel-tiempo">⏱ <span id="reloj">00:00</span></div>
 
     <div id="panel-pista">
-        <h2 id="pista-titulo">Buscá el primer objeto</h2>
-        <p id="pista-texto">Apuntá la cámara al objeto donde empieza la historia.</p>
+        <h2 id="pista-titulo"></h2>
+        <p id="pista-texto"></p>
     </div>
 
-    <button id="boton-reiniciar" class="boton" onclick="reiniciarJuego()">Reiniciar</button>
+    <div id="barra-botones">
+        <button id="boton-pista" class="boton" onclick="verPistaActual()">🧭 Ver pista</button>
+        <button id="boton-reiniciar" class="boton" onclick="reiniciarJuego()">Reiniciar</button>
+    </div>
 
     <div id="tarjeta" class="oculto">
         <div id="tarjeta-caja">
@@ -348,6 +373,12 @@
     </a-scene>
 
     <script>
+        var pistaInicial = {
+            titulo: "Dónde empezar",
+            texto: "Buscá el sol plateado con las letras IHS en el centro. " +
+                "Cuando lo tengas delante, apuntale la cámara."
+        };
+
         var pistas = [
             {
                 id: "marcador-pista1",
@@ -444,6 +475,26 @@
             return total;
         }
 
+        function objetivoActual() {
+            var ultima = null;
+            for (var i = 0; i < pistas.length; i++) {
+                if (encontrados[pistas[i].id] === true) {
+                    ultima = pistas[i];
+                }
+            }
+            return ultima === null ? pistaInicial : ultima;
+        }
+
+        function mostrarObjetivoEnCartel() {
+            var objetivo = objetivoActual();
+            mostrarCartel(objetivo.titulo, objetivo.texto);
+        }
+
+        function verPistaActual() {
+            var objetivo = objetivoActual();
+            mostrarTarjeta("🧭", "Tu pista", objetivo.titulo, objetivo.texto);
+        }
+
         function puedeAbrirElCofre() {
             return encontrados["marcador-pista1"] === true &&
                 encontrados["marcador-pista2"] === true;
@@ -521,12 +572,11 @@
 
             if (pista.id === "marcador-tesoro" && !puedeAbrirElCofre()) {
                 var faltan = 2 - contarEncontrados();
+                var objetivo = objetivoActual();
                 mostrarTarjeta("🔒", "El cofre está cerrado", "Todavía no",
                     "Encontraste el cofre, pero te " +
-                    (faltan === 1 ? "falta 1 pista" : "faltan " + faltan + " pistas") +
-                    ". Volvé cuando las tengas todas.");
-                mostrarCartel("🔒 El cofre está cerrado",
-                    "Te faltan pistas para poder abrirlo.");
+                    (faltan === 1 ? "falta 1 marca" : "faltan " + faltan + " marcas") +
+                    ". " + objetivo.texto);
                 sonarPito(200, 0.3);
                 return;
             }
@@ -565,6 +615,9 @@
             arreglarRutasDeMarcadores();
             cargarProgreso();
             registrar("Progreso guardado al abrir: " + contarEncontrados() + "/3");
+            mostrarObjetivoEnCartel();
+            document.getElementById("pista-inicio-texto").textContent =
+                "Primera pista: " + pistaInicial.texto;
 
             for (var i = 0; i < pistas.length; i++) {
                 (function (pista) {
