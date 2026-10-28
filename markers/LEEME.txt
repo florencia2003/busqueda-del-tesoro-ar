@@ -1,0 +1,14 @@
+Aca van los archivos que genera el creador de marcadores, a partir de las
+fotos de la carpeta fotos/.
+
+Generalos en: https://carnaux.github.io/NFT-Marker-Creator/
+
+Tienen que quedar 12 archivos, 3 por cada foto:
+
+    inicio.fset    inicio.fset3    inicio.iset
+    pista1.fset    pista1.fset3    pista1.iset
+    pista2.fset    pista2.fset3    pista2.iset
+    tesoro.fset    tesoro.fset3    tesoro.iset
+
+OJO: mientras esta carpeta este vacia, el juego abre la camara pero no
+detecta ningun objeto. Es lo esperado hasta que generes los marcadores.

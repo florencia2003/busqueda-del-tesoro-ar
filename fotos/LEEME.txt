@@ -1,0 +1,15 @@
+Poné acá las 4 fotos de los objetos del edificio, con estos nombres exactos:
+
+    inicio.jpg     <- el objeto donde arranca la historia
+    pista1.jpg     <- segundo objeto
+    pista2.jpg     <- tercer objeto
+    tesoro.jpg     <- el objeto final, el "cofre"
+
+Que sean objetos con MUCHO detalle y contraste (placas, carteles, afiches,
+senaletica). Evita paredes lisas, vidrios, metal brillante y patrones
+repetidos como azulejos.
+
+Foto de frente, bien iluminada, que el objeto llene casi toda la imagen,
+recortada, y achicada a unos 800 pixeles de lado largo.
+
+En el README.md esta explicado con mas detalle.
