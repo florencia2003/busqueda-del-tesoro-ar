@@ -104,6 +104,28 @@
             margin: 8px 0;
         }
 
+        #partida-guardada {
+            border: 2px solid #8a6f2a;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            background: rgba(138, 111, 42, 0.18);
+            max-width: 480px;
+        }
+
+        #partida-guardada p {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+        }
+
+        #boton-borrar-partida {
+            margin-top: 10px;
+            padding: 9px 20px;
+            font-size: 14px;
+            background-color: rgba(120, 40, 40, 0.9);
+            color: #f5e6c8;
+        }
+
         #pista-inicio-texto {
             border: 2px solid #c9a227;
             border-radius: 10px;
@@ -276,6 +298,13 @@
             margin: 0;
         }
 
+        #tarjeta-progreso {
+            font-size: 14px;
+            color: #c9a227;
+            margin: 14px 0 0 0;
+            letter-spacing: 0.5px;
+        }
+
         #debug {
             position: fixed;
             top: 52px;
@@ -318,6 +347,13 @@
             Cuando tengas las tres, el cofre se abrirá.
         </p>
         <p id="pista-inicio-texto"></p>
+        <div id="partida-guardada" class="oculto">
+            <p id="partida-guardada-texto"></p>
+            <button class="boton" id="boton-borrar-partida" onclick="reiniciarJuego()">
+                Empezar de nuevo
+            </button>
+        </div>
+
         <button id="boton-comenzar" class="boton" onclick="comenzarJuego()" disabled>
             Cargando marcadores...
         </button>
@@ -350,6 +386,7 @@
             <p id="tarjeta-encabezado">Marca encontrada</p>
             <h2 id="tarjeta-titulo"></h2>
             <p id="tarjeta-texto"></p>
+            <p id="tarjeta-progreso"></p>
             <button class="boton" onclick="cerrarTarjeta()">Seguir buscando</button>
         </div>
     </div>
@@ -374,7 +411,7 @@
 
     <script>
         var pistaInicial = {
-            titulo: "Dónde empezar",
+            titulo: "Buscá la marca 1 de 3",
             texto: "Buscá el sol plateado con las letras IHS en el centro. " +
                 "Cuando lo tengas delante, apuntale la cámara."
         };
@@ -382,14 +419,13 @@
         var pistas = [
             {
                 id: "marcador-pista1",
-                titulo: "Pista 1 de 3",
-                texto: "Bienvenido, buscador. El tesoro del Sacré Coeur te espera. " +
-                    "Buscá el lugar donde se sienta el Rector: arriba de dos sillas " +
-                    "vas a encontrar la siguiente marca."
+                titulo: "Buscá la marca 2 de 3",
+                texto: "Muy bien. Ahora buscá el lugar donde se sienta el Rector: " +
+                    "arriba de dos sillas vas a encontrar la siguiente marca."
             },
             {
                 id: "marcador-pista2",
-                titulo: "Pista 2 de 3",
+                titulo: "Buscá la marca 3 de 3 (la última)",
                 texto: "Casi lo lográs. La última marca está cerca de la anterior, " +
                     "date vuelta y la vas a ver."
             },
@@ -492,7 +528,16 @@
 
         function verPistaActual() {
             var objetivo = objetivoActual();
-            mostrarTarjeta("🧭", "Tu pista", objetivo.titulo, objetivo.texto);
+            mostrarTarjeta("🧭", "Lo que estás buscando", objetivo.titulo, objetivo.texto);
+        }
+
+        function numeroDeMarca(pista) {
+            for (var i = 0; i < pistas.length; i++) {
+                if (pistas[i].id === pista.id) {
+                    return i + 1;
+                }
+            }
+            return 0;
         }
 
         function puedeAbrirElCofre() {
@@ -512,6 +557,8 @@
             document.getElementById("tarjeta-encabezado").textContent = encabezado;
             document.getElementById("tarjeta-titulo").textContent = titulo;
             document.getElementById("tarjeta-texto").textContent = texto;
+            document.getElementById("tarjeta-progreso").textContent =
+                "Llevás " + contarEncontrados() + " de " + pistas.length + " marcas";
             document.getElementById("tarjeta").classList.remove("oculto");
             tarjetaAbierta = true;
         }
@@ -589,10 +636,11 @@
 
             if (pista.id === "marcador-tesoro") {
                 mostrarTarjeta("💰", "¡Abriste el cofre!", pista.titulo, pista.texto);
-            } else if (esNuevo) {
-                mostrarTarjeta("✅", "Marca encontrada", pista.titulo, pista.texto);
             } else {
-                mostrarTarjeta("🔁", "Esta ya la tenías", pista.titulo, pista.texto);
+                var cual = "Marca " + numeroDeMarca(pista) + " de " + pistas.length;
+                mostrarTarjeta("✅",
+                    esNuevo ? cual + " encontrada" : cual + ": ya la tenías",
+                    pista.titulo, pista.texto);
             }
 
             registrar(esNuevo
@@ -618,6 +666,7 @@
             mostrarObjetivoEnCartel();
             document.getElementById("pista-inicio-texto").textContent =
                 "Primera pista: " + pistaInicial.texto;
+            avisarPartidaGuardada();
 
             for (var i = 0; i < pistas.length; i++) {
                 (function (pista) {
@@ -642,7 +691,9 @@
             var boton = document.getElementById("boton-comenzar");
             if (boton.disabled) {
                 boton.disabled = false;
-                boton.textContent = "Comenzar la aventura";
+                boton.textContent = boton.getAttribute("data-continuar") === "si"
+                    ? "Continuar la aventura"
+                    : "Comenzar la aventura";
             }
         }
 
@@ -669,6 +720,21 @@
                 guardarProgreso();
             }
         }, 1000);
+
+        function avisarPartidaGuardada() {
+            var yaTiene = contarEncontrados();
+            if (yaTiene === 0) {
+                return;
+            }
+
+            document.getElementById("partida-guardada-texto").textContent =
+                "Tenés una partida empezada: " + yaTiene + " de " + pistas.length +
+                " marcas encontradas. Si querés arrancar limpio, borrala.";
+            document.getElementById("partida-guardada").classList.remove("oculto");
+
+            var boton = document.getElementById("boton-comenzar");
+            boton.setAttribute("data-continuar", "si");
+        }
 
         function comenzarJuego() {
             document.getElementById("pantalla-inicio").classList.add("oculto");
